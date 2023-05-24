@@ -1,0 +1,30 @@
+name: Frontend Deploy to EC2
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - "frontend/**" # Trigger only if changes are made in the frontend folder
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Build React frontend
+        working-directory: ./frontend
+        run: npm i && npm run build
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ec2-13-49-148-239.eu-north-1.compute.amazonaws.com
+          username: ubuntu
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          script: |
+            cd /home/ubuntu/qmonorepo
+            git restore frontend/package-lock.json
+            git pull origin dev
+            echo "Deploy React frontend"
+            cd ./frontend
+            npm install
+            pm2 restart 1

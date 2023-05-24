@@ -1,0 +1,30 @@
+name: Backend Deploy to EC2
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - "backend/**" # Trigger only if changes are made in the backend folder
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Install Node.js dependencies
+        working-directory: ./backend
+        run: npm i
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ec2-13-49-148-239.eu-north-1.compute.amazonaws.com
+          username: ubuntu
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          script: |
+            cd /home/ubuntu/qmonorepo
+            git restore backend/package-lock.json
+            git pull origin dev
+            echo "Deploy Node.js backend"
+            cd ./backend
+            npm install
+            pm2 restart 2
