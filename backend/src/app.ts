@@ -9,7 +9,7 @@ import connectDB from "./utils/prisma";
 import passport from "passport";
 
 const app = express();
-
+// test
 app.use(passport.initialize());
 app.use(express.json({ limit: "10kb" }));
 
