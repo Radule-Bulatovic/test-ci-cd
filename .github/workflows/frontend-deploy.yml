@@ -21,7 +21,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
-            cd /home/ubuntu/qmonorepo
+            cd /home/ubuntu/test-ci-cd
             git restore frontend/package-lock.json
             git pull origin dev
             echo "Deploy React frontend"
