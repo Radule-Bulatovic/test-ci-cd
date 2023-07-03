@@ -16,16 +16,16 @@ jobs:
           username: ${{ secrets.EC2_BUILD_SSH_USERNAME }}
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           script: |
-            cd /home/${{ secrets.EC2_BUILD_SSH_USERNAME }}/qmonorepo
+            cd ~/test-ci-cd
             git reset --hard
             git pull
             cd ./frontend
             npm install
             npm run build
             scp \
-              -i /home/${{ secrets.EC2_BUILD_SSH_USERNAME }}/server.pem \ 
+              -i ~/server.pem \ 
               -r dist \
-              ${{ secrets.EC2_SERVE_SSH_USERNAME }}@${{ secrets.EC2_SERVE_INSTANCE_IP }}:/home/${{ secrets.EC2_SERVE_SSH_USERNAME }}/test
+              ${{ secrets.EC2_SERVE_SSH_USERNAME }}@${{ secrets.EC2_SERVE_INSTANCE_IP }}:~/test
       - name: Deploy on EC2
         uses: appleboy/ssh-action@master
         with:
@@ -33,6 +33,6 @@ jobs:
           username: ${{ secrets.EC2_SERVE_SSH_USERNAME }}
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           script: |
-            cd /home/${{ secrets.EC2_SERVE_SSH_USERNAME }}/test
+            cd ~/test
             mkdir test2
             pm2 restart --name FE
