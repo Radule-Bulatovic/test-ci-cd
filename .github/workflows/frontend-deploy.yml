@@ -22,10 +22,7 @@ jobs:
             cd ./frontend
             npm install
             npm run build
-            scp \
-              -i ~/server.pem \ 
-              -r dist \
-              ${{ secrets.EC2_SERVE_SSH_USERNAME }}@${{ secrets.EC2_SERVE_INSTANCE_IP }}:~/test
+            scp -i ~/server.pem -r dist ${{ secrets.EC2_SERVE_SSH_USERNAME }}@${{ secrets.EC2_SERVE_INSTANCE_IP }}:~/test
       - name: Deploy on EC2
         uses: appleboy/ssh-action@master
         with:
