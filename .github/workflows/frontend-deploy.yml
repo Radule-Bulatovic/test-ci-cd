@@ -1,30 +1,38 @@
-name: Frontend Deploy to EC2
+name: Frontend Deploy
 on:
   push:
     branches:
       - dev
     paths:
-      - "frontend/**" # Trigger only if changes are made in the frontend folder
+      - "frontend/**"
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Build React frontend
-        working-directory: ./frontend
-        run: npm i && npm run build
-      - name: Deploy to EC2
+      - name: Build on EC2
         uses: appleboy/ssh-action@master
         with:
-          host: ec2-13-49-148-239.eu-north-1.compute.amazonaws.com
-          username: ubuntu
-          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          host: ${{ secrets.EC2_BUILD_INSTANCE_IP }}
+          username: ${{ secrets.EC2_BUILD_SSH_USERNAME }}
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           script: |
-            cd /home/ubuntu/test-ci-cd
-            git restore frontend/package-lock.json
-            git pull origin dev
-            echo "Deploy React frontend"
+            cd /home/${{ secrets.EC2_BUILD_SSH_USERNAME }}/qmonorepo
+            git reset --hard
+            git pull
             cd ./frontend
             npm install
-            pm2 restart 1
+            npm run build
+            scp \
+              -i /home/${{ secrets.EC2_BUILD_SSH_USERNAME }}/server.pem \ 
+              -r dist \
+              ${{ secrets.EC2_SERVE_SSH_USERNAME }}@${{ secrets.EC2_SERVE_INSTANCE_IP }}:/home/${{ secrets.EC2_SERVE_SSH_USERNAME }}/test
+      - name: Deploy on EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_SERVE_INSTANCE_IP }}
+          username: ${{ secrets.EC2_SERVE_SSH_USERNAME }}
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/${{ secrets.EC2_SERVE_SSH_USERNAME }}/test
+            mkdir test2
+            pm2 restart --name FE
